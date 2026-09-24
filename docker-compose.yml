@@ -1,0 +1,35 @@
+# Debezium tutorial stack (https://debezium.io/documentation/reference/stable/kc-tutorial.html)
+services:
+  kafka:
+    image: quay.io/debezium/kafka:3.6
+    hostname: kafka
+    environment:
+      CLUSTER_ID: 5Yr1SIgYQz-b-dgRabWx4g
+      NODE_ID: 1
+      NODE_ROLE: combined
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+  mysql:
+    image: quay.io/debezium/example-mysql:3.6
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: debezium
+      MYSQL_USER: mysqluser
+      MYSQL_PASSWORD: mysqlpw
+
+  connect:
+    image: quay.io/debezium/connect:3.6
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: my_connect_configs
+      OFFSET_STORAGE_TOPIC: my_connect_offsets
+      STATUS_STORAGE_TOPIC: my_connect_statuses
+    depends_on:
+      - kafka
+      - mysql
