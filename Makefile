@@ -1,6 +1,6 @@
 TOPIC ?= dbserver1.inventory.customers
 
-.PHONY: up down register status topics watch mysql logs
+.PHONY: up down register status topics watch mysql logs churn
 
 up:        ## Start Kafka, MySQL and Kafka Connect
 	docker compose up -d
@@ -28,3 +28,6 @@ mysql:     ## Open a MySQL shell on the inventory database
 
 logs:      ## Follow Kafka Connect logs
 	docker compose logs -f connect
+
+churn:     ## Generate a burst of changes after 2s, e.g. make churn ROUNDS=200
+	./generate-changes.sh $(ROUNDS)

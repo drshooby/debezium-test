@@ -21,6 +21,19 @@ mysql> DELETE FROM customers WHERE id=1004;
 
 The create, update, and delete events show up in the `make watch` terminal.
 
+To generate lots of changes at once, run `make churn` (or `./generate-changes.sh`). It waits 2 seconds so you can switch to the watching terminal, then fires off rounds of inserts, updates and deletes. The default is 50 rounds; set `ROUNDS=10000` for a bigger flood. Keep it in the tens of thousands, because every change is stored in MySQL, its binlog and Kafka, and Docker's disk fills up fast.
+
+## Embedded engine demo (no Kafka)
+
+`engine-demo/` runs the same Debezium MySQL connector inside a small Java program instead of Kafka Connect. Each change is handed to a callback that prints it, showing that Debezium is a library the host process runs rather than a separate service. It needs Java 17+ and Maven, plus MySQL running (`make up`).
+
+```sh
+cd engine-demo
+mvn -q exec:java
+```
+
+It prints a snapshot of every table (`op=r`), then live changes (`op=c`, `op=u`, `op=d`) as you make them with `make mysql` or `make churn`. Its position in the binlog is kept only in memory, so every run starts with a fresh snapshot. See `engine-demo/src/main/java/demo/WatchInventory.java`.
+
 ## Other commands
 
 | Command | What it does |
@@ -29,6 +42,7 @@ The create, update, and delete events show up in the `make watch` terminal.
 | `make topics` | List Kafka topics |
 | `make watch TOPIC=dbserver1.inventory.orders` | Watch a different table |
 | `make logs` | Follow Kafka Connect logs |
+| `make churn ROUNDS=200` | Wait 2s, then flood the database with inserts, updates and deletes (default 50 rounds) |
 | `make down` | Stop everything and wipe data |
 
 ## Endpoints
